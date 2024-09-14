@@ -219,7 +219,7 @@ bash
 conda activate ppr
 find . -name ".DS_Store" -delete
 
-python track.py video.source="pres" \
+python track.py video.source="matches" \
     device="cuda:0" \
     video.start_frame=-1 \
     video.end_frame=-1 \

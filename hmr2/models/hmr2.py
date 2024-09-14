@@ -137,6 +137,17 @@ class HMR2(pl.LightningModule):
                                                    focal_length=focal_length / self.cfg.MODEL.IMAGE_SIZE)
 
         output['pred_keypoints_2d'] = pred_keypoints_2d.reshape(batch_size, -1, 2)
+        
+        z = torch.maximum(pred_keypoints_3d[:, 20, 1], pred_keypoints_3d[:, 23, 1])
+        lf = pred_keypoints_3d[:, 20].clone()
+        rf = pred_keypoints_3d[:, 23].clone()
+        lf[:, 1] = z
+        rf[:, 1] = z
+        feet = torch.concatenate((lf, rf), axis=1).reshape(-1, 2, 3)
+        output['pred_feet'] = perspective_projection(feet,
+                                      translation=pred_cam_t,
+                                      focal_length=focal_length / self.cfg.MODEL.IMAGE_SIZE).reshape(batch_size, -1, 2)
+        
         return output
 
     def compute_loss(self, batch: Dict, output: Dict, train: bool = True) -> torch.Tensor:

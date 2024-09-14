@@ -40,7 +40,7 @@ def process_match(match_folder, root_dir):
         f"video.source={os.path.join(root_dir, match_folder)}",
         "device=cuda:0",  # Always use cuda:0 as it's the only visible device for this process
         "video.start_frame=-1",
-        "video.end_frame=-1",
+        "video.end_frame=20",
         f"video.output_dir={match_folder}",
         "base_tracker=pose",
         "phalp.low_th_c=0.8",

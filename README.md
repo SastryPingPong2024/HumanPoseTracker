@@ -11,7 +11,9 @@ python demo.py \
     --img_folder example_data/images \
     --out_folder demo_out \
     --batch_size=48 --side_view --save_mesh --full_frame
-    
+
 conda install cuda
 pip install git+https://github.com/brjathu/PHALP.git
+
+Replace phalp/trackers/PHALP.py with the local version in this repo.
 ```
