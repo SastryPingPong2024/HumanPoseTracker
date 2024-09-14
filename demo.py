@@ -112,8 +112,7 @@ def main():
                                         batch['img'][n],
                                         mesh_base_color=LIGHT_BLUE,
                                         scene_bg_color=(1, 1, 1),
-                                        )
-
+                                        )[0]
                 final_img = np.concatenate([input_patch, regression_img], axis=1)
 
                 if args.side_view:
@@ -122,7 +121,7 @@ def main():
                                             white_img,
                                             mesh_base_color=LIGHT_BLUE,
                                             scene_bg_color=(1, 1, 1),
-                                            side_view=True)
+                                            side_view=True)[0]
                     final_img = np.concatenate([final_img, side_img], axis=1)
 
                 if args.top_view:
@@ -131,7 +130,7 @@ def main():
                                             white_img,
                                             mesh_base_color=LIGHT_BLUE,
                                             scene_bg_color=(1, 1, 1),
-                                            top_view=True)
+                                            top_view=True)[0]
                     final_img = np.concatenate([final_img, top_img], axis=1)
 
                 cv2.imwrite(os.path.join(args.out_folder, f'{img_fn}_{person_id}.png'), 255*final_img[:, :, ::-1])

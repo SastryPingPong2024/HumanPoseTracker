@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
 
+import sys
 import os
+import shutil
+import glob
 import hydra
 import torch
 import numpy as np
@@ -139,7 +142,9 @@ class HMR2023TextureSampler(HMR2Predictor):
             'uv_vector' : self.hmar_old.process_uv_image(uv_image),
             'pose_smpl': model_out['pred_smpl_params'],
             'pred_cam':  model_out['pred_cam'],
-            'pred_keypoints_2d': model_out['pred_keypoints_2d'].detach().cpu().numpy()
+            'pred_keypoints_2d': model_out['pred_keypoints_2d'].detach().cpu().numpy(),
+            'pred_keypoints_3d': model_out['pred_keypoints_3d'].detach().cpu().numpy(),
+            'pred_feet': model_out['pred_feet'].detach().cpu().numpy()
         }
         return out
 
@@ -178,9 +183,49 @@ cs.store(name="config", node=Human4DConfig)
 def main(cfg: DictConfig) -> Optional[float]:
     """Main function for running the PHALP tracker."""
 
-    phalp_tracker = HMR2_4dhuman(cfg)
+    phalp_tracker = HMR2_4dhuman(cfg).to(device)
 
-    phalp_tracker.track()
+    for video_name in video_names:
+        path = f"{video_folder}/{video_name}"
+        phalp_tracker.update_config(path)
+        phalp_tracker.track()
 
 if __name__ == "__main__":
-    main()
+    temp = " ".join(sys.argv)
+    device = temp.split("device=")[-1].split(" ")[0]
+    output_folder = temp.split("video.output_dir=")[-1].split(" ")[0]
+    video_folder = temp.split("video.source=")[-1].split(" ")[0]
+    video_names  = os.listdir(video_folder)
+    print(f"Videos Found: {video_names}.")
+    
+    torch.cuda.set_device(device)
+    
+    try:
+        main()
+    except Exception as e:
+        print(e)
+    
+    shutil.rmtree(f"{output_folder}/_DEMO")
+    shutil.rmtree(f"{output_folder}/_TMP")
+    shutil.rmtree(f"{output_folder}/results")
+    shutil.rmtree(f"{output_folder}/results_tracks")
+    shutil.rmtree(f"{output_folder}/.hydra")
+    for f in glob.glob(os.path.join(output_folder, "pose_*")):
+        os.remove(f)
+    shutil.move(output_folder, f"outputs/{output_folder}")
+    
+"""
+bash
+conda activate ppr
+find . -name ".DS_Store" -delete
+
+python track.py video.source="pres" \
+    device="cuda:0" \
+    video.start_frame=-1 \
+    video.end_frame=-1 \
+    video.output_dir="idk" \
+    base_tracker="pose" \
+    phalp.low_th_c=0.8 \
+    phalp.small_w=25 \
+    phalp.small_h=50
+"""
