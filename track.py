@@ -144,7 +144,6 @@ class HMR2023TextureSampler(HMR2Predictor):
             'pred_cam':  model_out['pred_cam'],
             'pred_keypoints_2d': model_out['pred_keypoints_2d'].detach().cpu().numpy(),
             'pred_keypoints_3d': model_out['pred_keypoints_3d'].detach().cpu().numpy(),
-            'pred_feet': model_out['pred_feet'].detach().cpu().numpy()
         }
         return out
 
@@ -219,11 +218,11 @@ bash
 conda activate ppr
 find . -name ".DS_Store" -delete
 
-python track.py video.source="matches" \
+python track.py video.source="matches/match1/" \
     device="cuda:0" \
     video.start_frame=-1 \
     video.end_frame=-1 \
-    video.output_dir="idk" \
+    video.output_dir="match1" \
     base_tracker="pose" \
     phalp.low_th_c=0.8 \
     phalp.small_w=25 \

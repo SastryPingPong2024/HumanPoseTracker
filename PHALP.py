@@ -223,7 +223,7 @@ class PHALP(nn.Module):
                 self.tracker.update(detections, t_, frame_name, self.cfg.phalp.shot)
 
                 ############ record the results ##############
-                custom_keys = ['pred_keypoints_2d', 'pred_keypoints_3d', 'orig_scale', 'pred_feet']
+                custom_keys = ['pred_keypoints_2d', 'pred_keypoints_3d', 'orig_scale']
                 
                 final_visuals_dic.setdefault(frame_name, {'time': t_, 'shot': self.cfg.phalp.shot, 'frame_path': frame_name})
                 if(self.cfg.render.enable): final_visuals_dic[frame_name]['frame'] = image_frame
@@ -283,11 +283,8 @@ class PHALP(nn.Module):
                             old_len, scale = dic['orig_scale'][tid]
                             pred_keypoints_3d = dic['pred_keypoints_3d'][tid]
                             pred_keypoints_2d = dic['pred_keypoints_2d'][tid]  
-                            pred_feet = dic['pred_feet'][tid]
                             pred_keypoints_2d = pred_keypoints_2d * scale + box_center
                             pred_keypoints_2d = pred_keypoints_2d * len(rendered_) / old_len
-                            pred_feet = pred_feet * scale + box_center
-                            pred_feet = pred_feet * len(rendered_) / old_len
                             
                             # Add them as colored squares
                             for idx in range(len(pred_keypoints_2d)):
@@ -310,8 +307,8 @@ class PHALP(nn.Module):
                                 "frame": t__ - frame_counter_offset,
                                 "frame_size": f_size,
                                 "object_id": dic['tid'][tid],
-                                "positions": pred_feet.tolist(), 
                                 "keypoints_idx": len(self.keypoints_3d) - 1,
+                                "rescale_factor": (scale * len(rendered_) / old_len).item()
                             })
                                 
                         # save the rendered frame
@@ -486,7 +483,6 @@ class PHALP(nn.Module):
             pred_smpl_params = [{k:v[i].cpu().numpy() for k,v in pred_smpl_params.items()} for i in range(BS)]
             pred_keypoints_2d = hmar_out['pred_keypoints_2d']
             pred_keypoints_3d = hmar_out['pred_keypoints_3d']
-            pred_feet = hmar_out['pred_feet']
             
             if(self.cfg.phalp.pose_distance=="joints"):
                 pose_embedding  = pred_joints.cpu().view(BS, -1)
@@ -538,7 +534,6 @@ class PHALP(nn.Module):
                                 
                                 "pred_keypoints_2d": pred_keypoints_2d[i],
                                 "pred_keypoints_3d": pred_keypoints_3d[i],
-                                "pred_feet"        : pred_feet[i],     
                                 "orig_scale"       : [len(image), scale_list[i].max()]
                             }
             detection_data_list.append(Detection(detection_data))            

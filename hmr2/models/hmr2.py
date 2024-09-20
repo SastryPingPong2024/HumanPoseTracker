@@ -138,15 +138,15 @@ class HMR2(pl.LightningModule):
 
         output['pred_keypoints_2d'] = pred_keypoints_2d.reshape(batch_size, -1, 2)
         
-        z = torch.maximum(pred_keypoints_3d[:, 20, 1], pred_keypoints_3d[:, 23, 1])
-        lf = pred_keypoints_3d[:, 20].clone()
-        rf = pred_keypoints_3d[:, 23].clone()
-        lf[:, 1] = z
-        rf[:, 1] = z
-        feet = torch.concatenate((lf, rf), axis=1).reshape(-1, 2, 3)
-        output['pred_feet'] = perspective_projection(feet,
-                                      translation=pred_cam_t,
-                                      focal_length=focal_length / self.cfg.MODEL.IMAGE_SIZE).reshape(batch_size, -1, 2)
+        # z = torch.maximum(pred_keypoints_3d[:, 20, 1], pred_keypoints_3d[:, 23, 1])
+        # lf = pred_keypoints_3d[:, 20].clone()
+        # rf = pred_keypoints_3d[:, 23].clone()
+        # lf[:, 1] = z
+        # rf[:, 1] = z
+        # feet = torch.concatenate((lf, rf), axis=1).reshape(-1, 2, 3)
+        # output['pred_feet'] = perspective_projection(feet,
+        #                               translation=pred_cam_t,
+        #                               focal_length=focal_length / self.cfg.MODEL.IMAGE_SIZE).reshape(batch_size, -1, 2)
         
         return output
 
@@ -243,7 +243,7 @@ class HMR2(pl.LightningModule):
         pred_keypoints_3d = output['pred_keypoints_3d'].detach().reshape(batch_size, -1, 3)
 
         # We render the skeletons instead of the full mesh because rendering a lot of meshes will make the training slow.
-        #predictions = self.renderer(pred_keypoints_3d[:num_images],
+        # predictions = self.renderer(pred_keypoints_3d[:num_images],
         #                            gt_keypoints_3d[:num_images],
         #                            2 * gt_keypoints_2d[:num_images],
         #                            images=images[:num_images],

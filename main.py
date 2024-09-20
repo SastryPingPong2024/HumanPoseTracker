@@ -15,51 +15,41 @@ def get_gpu_memory_map():
     gpu_memory = [int(x) for x in result.strip().split('\n')]
     return gpu_memory
 
-def set_available_gpu(env):
-    try:
-        gpu_memory_map = get_gpu_memory_map()
-        if gpu_memory_map:
-            # Select the GPU with the most free memory
-            selected_gpu = gpu_memory_map.index(max(gpu_memory_map))
-            env["CUDA_VISIBLE_DEVICES"] = str(selected_gpu)
-            return selected_gpu
-        else:
-            print("No GPUs available")
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("nvidia-smi is not available. Make sure CUDA is installed and you have NVIDIA GPUs.")
-
-def process_match(match_folder, root_dir):
+def process_match(match_folder, root_dir, gpu_id):
     match_number = match_folder.split('match')[1]
 
     # Set the CUDA_VISIBLE_DEVICES environment variable
     env = os.environ.copy()
-    gpu_id = set_available_gpu(env)
+    env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     command = [
         "python", "track.py",
         f"video.source={os.path.join(root_dir, match_folder)}",
         "device=cuda:0",  # Always use cuda:0 as it's the only visible device for this process
         "video.start_frame=-1",
-        "video.end_frame=20",
+        "video.end_frame=-1",
         f"video.output_dir={match_folder}",
         "base_tracker=pose",
         "phalp.low_th_c=0.8",
         "phalp.small_w=25",
-        "phalp.small_h=50"
+        "phalp.small_h=50",
     ]
 
     print(f"Processing {match_folder} on GPU {gpu_id}")
     subprocess.run(command, check=True, env=env)
     print(f"Finished processing {match_folder}")
 
-def main(root_dir):
+def main(root_dir, gpu_ids, workers_per_gpu):
     match_folders = [f for f in os.listdir(root_dir) if f.startswith('match')]
     match_folders.sort(key=lambda x: int(x.split('match')[1]))
 
-    with ProcessPoolExecutor(max_workers=4) as executor:
+    total_workers = len(gpu_ids) * workers_per_gpu
+    
+    with ProcessPoolExecutor(max_workers=total_workers) as executor:
         futures = []
         for i, match_folder in enumerate(match_folders):
-            future = executor.submit(process_match, match_folder, root_dir)
+            gpu_id = gpu_ids[i % len(gpu_ids)]
+            future = executor.submit(process_match, match_folder, root_dir, gpu_id)
             futures.append(future)
             time.sleep(10)
 
@@ -70,10 +60,10 @@ def main(root_dir):
                 print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process match folders in parallel using multiple GPUs")
+    parser = argparse.ArgumentParser(description="Process match folders in parallel using specified GPUs")
     parser.add_argument("root_dir", help="Root directory containing match folders")
+    parser.add_argument("--gpu_ids", nargs='+', type=int, default=[0, 1, 2, 3, 4, 5], help="List of GPU IDs to use")
+    parser.add_argument("--workers_per_gpu", type=int, default=2, help="Number of workers per GPU")
     args = parser.parse_args()
 
-    main(args.root_dir)
-    
-"pytorch AMP and TRT"
+    main(args.root_dir, args.gpu_ids, args.workers_per_gpu)
