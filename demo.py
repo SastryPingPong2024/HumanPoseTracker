@@ -12,6 +12,7 @@ from hmr2.datasets.vitdet_dataset import ViTDetDataset, DEFAULT_MEAN, DEFAULT_ST
 from hmr2.utils.renderer import Renderer, cam_crop_to_full
 
 LIGHT_BLUE=(0.65098039,  0.74117647,  0.85882353)
+gpu_number = 8
 
 def main():
     import time
@@ -35,7 +36,7 @@ def main():
     model, model_cfg = load_hmr2(args.checkpoint)
 
     # Setup HMR2.0 model
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device(f'cuda:{gpu_number}') if torch.cuda.is_available() else torch.device('cpu')
     model = model.to(device)
     model.eval()
 
@@ -49,7 +50,7 @@ def main():
         detectron2_cfg.train.init_checkpoint = "https://dl.fbaipublicfiles.com/detectron2/ViTDet/COCO/cascade_mask_rcnn_vitdet_h/f328730692/model_final_f05665.pkl"
         for i in range(3):
             detectron2_cfg.model.roi_heads.box_predictors[i].test_score_thresh = 0.25
-        detector = DefaultPredictor_Lazy(detectron2_cfg)
+        detector = DefaultPredictor_Lazy(detectron2_cfg, device=f'cuda:{gpu_number}')
     elif args.detector == 'regnety':
         from detectron2 import model_zoo
         from detectron2.config import get_cfg

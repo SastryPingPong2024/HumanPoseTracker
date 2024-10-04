@@ -24,10 +24,8 @@ class HMR2(pl.LightningModule):
             cfg (CfgNode): Config file as a yacs CfgNode
         """
         super().__init__()
-
         # Save hyperparameters
         self.save_hyperparameters(logger=False, ignore=['init_renderer'])
-
         self.cfg = cfg
         # Create backbone feature extractor
         self.backbone = create_backbone(cfg)
@@ -53,6 +51,7 @@ class HMR2(pl.LightningModule):
 
         # Buffer that shows whetheer we need to initialize ActNorm layers
         self.register_buffer('initialized', torch.tensor(False))
+        
         # Setup renderer for visualization
         if init_renderer:
             self.renderer = SkeletonRenderer(self.cfg)
@@ -60,6 +59,7 @@ class HMR2(pl.LightningModule):
         else:
             self.renderer = None
             self.mesh_renderer = None
+            
 
         # Disable automatic optimization since we use adversarial training
         self.automatic_optimization = False

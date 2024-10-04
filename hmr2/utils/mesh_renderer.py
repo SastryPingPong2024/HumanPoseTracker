@@ -49,7 +49,6 @@ class MeshRenderer:
         self.renderer = pyrender.OffscreenRenderer(viewport_width=self.img_res,
                                        viewport_height=self.img_res,
                                        point_size=1.0)
-        
         self.camera_center = [self.img_res // 2, self.img_res // 2]
         self.faces = faces
 

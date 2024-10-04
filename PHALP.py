@@ -100,7 +100,7 @@ class PHALP(nn.Module):
             self.detectron2_cfg = model_zoo.get_config('new_baselines/mask_rcnn_regnety_4gf_dds_FPN_400ep_LSJ.py', trained=True)
             self.detectron2_cfg.model.roi_heads.box_predictor.test_score_thresh = 0.5
             self.detectron2_cfg.model.roi_heads.box_predictor.test_nms_thresh   = 0.4
-            self.detector       = DefaultPredictor_Lazy(self.detectron2_cfg)
+            self.detector       = DefaultPredictor_Lazy(self.detectron2_cfg, self.cfg.device)
             self.class_names    = self.detector.metadata.get('thing_classes')
         elif self.cfg.phalp.detector == 'vitdet':
             from detectron2.config import LazyConfig

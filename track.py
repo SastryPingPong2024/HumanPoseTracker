@@ -28,6 +28,7 @@ log = get_pylogger(__name__)
 class HMR2Predictor(HMR2018Predictor):
     def __init__(self, cfg) -> None:
         super().__init__(cfg)
+        
         # Setup our new model
         from hmr2.models import download_models, load_hmr2
 
@@ -64,7 +65,6 @@ class HMR2023TextureSampler(HMR2Predictor):
 
         self.img_size = 256         # self.cfg.MODEL.IMAGE_SIZE
         self.focal_length = 5000.   # self.cfg.EXTRA.FOCAL_LENGTH
-
         import neural_renderer as nr
         self.neural_renderer = nr.Renderer(dist_coeffs=None, orig_size=self.img_size,
                                           image_size=self.img_size,
@@ -190,6 +190,8 @@ def main(cfg: DictConfig) -> Optional[float]:
         phalp_tracker.track()
 
 if __name__ == "__main__":
+    torch.cuda.init()
+    
     temp = " ".join(sys.argv)
     device = temp.split("device=")[-1].split(" ")[0]
     output_folder = temp.split("video.output_dir=")[-1].split(" ")[0]
@@ -218,7 +220,7 @@ bash
 conda activate ppr
 find . -name ".DS_Store" -delete
 
-python track.py video.source="matches/match1/" \
+python track.py video.source="../matches/match1/" \
     device="cuda:0" \
     video.start_frame=-1 \
     video.end_frame=-1 \
