@@ -21,6 +21,8 @@ def process_match(match_folder, root_dir, gpu_id):
     # Set the CUDA_VISIBLE_DEVICES environment variable
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+    env["EGL_DEVICE_ID"] = str(gpu_id)
+    env["PYOPENGL_PLATFORM"] = "egl"
 
     command = [
         "python", "track.py",
